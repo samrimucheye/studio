@@ -105,13 +105,14 @@ export async function getAffiliateLinks(): Promise<AffiliateLink[]> {
     return links;
   } catch (error) {
     console.error("Error fetching affiliate links:", error);
+     // Rethrow the error to be handled by the caller (e.g., useQuery's error handler)
     if (error instanceof FirestoreError) {
         console.error(`Firestore Error Code: ${error.code}`);
         console.error(`Firestore Error Message: ${error.message}`);
+         throw new Error(`Failed to fetch links. Database error: ${error.code}`);
     }
-    console.warn("Returning default links due to fetch error.");
-    // Return copies to avoid accidental mutation
-    return defaultLinks.map(link => ({ ...link }));
+     // Wrap the original error
+     throw new Error(`Failed to fetch links due to an unexpected server error: ${(error as Error).message}`);
   }
 }
 
@@ -144,19 +145,16 @@ export async function addAffiliateLink(userId: string, linkData: Omit<AffiliateL
     return { id: docRef.id };
   } catch (error) {
     console.error("[Service: Add] Error adding affiliate link:", error); // More detailed log prefix
-    // Check for specific Firestore errors if needed
     if (error instanceof FirestoreError) {
-         // Handle potential permission errors, etc.
          console.error(`[Service: Add] Firestore Error Code: ${error.code}`);
          console.error(`[Service: Add] Firestore Error Message: ${error.message}`);
-         // Throw a more specific error based on the code
          if (error.code === 'permission-denied') {
             throw new Error("PERMISSION_DENIED: You do not have permission to add links.");
          }
          // Wrap the original error for better context
-         throw new Error(`Failed to add affiliate link. Firestore Error: ${error.message} (Code: ${error.code})`);
+         throw new Error(`Failed to add affiliate link. Database Error: ${error.message} (Code: ${error.code})`);
     }
-    // Re-throw a generic error for other cases
+    // Re-throw a generic error for other cases, wrapping the original message
     throw new Error(`Failed to add affiliate link due to an unexpected server error: ${(error as Error).message}`);
   }
 }
@@ -191,15 +189,17 @@ export async function updateAffiliateLink(linkId: string, linkData: Partial<Omit
      revalidatePath('/'); // Revalidate the home page cache
   } catch (error) {
     console.error("[Service: Update] Error updating affiliate link:", error);
-    // Consider checking error type, e.g., if doc doesn't exist or permission denied
      if (error instanceof FirestoreError) {
          console.error(`[Service: Update] Firestore Error Code: ${error.code}`);
           console.error(`[Service: Update] Firestore Error Message: ${error.message}`);
            if (error.code === 'permission-denied') {
                 throw new Error("PERMISSION_DENIED: You do not have permission to update links.");
            }
-           // Wrap the original error
-         throw new Error(`Failed to update affiliate link. Firestore Error: ${error.message} (Code: ${error.code})`);
+            if (error.code === 'not-found') {
+                throw new Error(`Failed to update link: Document with ID ${linkId} not found.`);
+           }
+         // Wrap the original error
+         throw new Error(`Failed to update affiliate link. Database Error: ${error.message} (Code: ${error.code})`);
     }
     // Wrap the original error
     throw new Error(`Failed to update affiliate link due to an unexpected server error: ${(error as Error).message}`);
@@ -232,7 +232,6 @@ export async function deleteAffiliateLink(linkId: string): Promise<void> {
     revalidatePath('/'); // Revalidate the home page cache
   } catch (error) {
     console.error("[Service: Delete] Error deleting affiliate link:", error);
-     // Consider checking error type, e.g., if doc doesn't exist or permission denied
      if (error instanceof FirestoreError) {
          console.error(`[Service: Delete] Firestore Error Code: ${error.code}`);
           console.error(`[Service: Delete] Firestore Error Message: ${error.message}`);
@@ -241,12 +240,11 @@ export async function deleteAffiliateLink(linkId: string): Promise<void> {
                 throw new Error("PERMISSION_DENIED: You do not have permission to delete links.");
            } else if (error.code === 'not-found') {
                console.warn("[Service: Delete] Document not found:", linkId);
-                // Decide if this should be an error or just ignored
-                // throw new Error(`Failed to delete link: Document with ID ${linkId} not found.`);
-                 return; // Or simply return if not finding it isn't an error
+               // Treat "not found" during delete as success (idempotent)
+               return;
            }
-           // Wrap the original error
-         throw new Error(`Failed to delete affiliate link. Firestore Error: ${error.message} (Code: ${error.code})`);
+         // Wrap the original error
+         throw new Error(`Failed to delete affiliate link. Database Error: ${error.message} (Code: ${error.code})`);
     }
      // Wrap the original error
     throw new Error(`Failed to delete affiliate link due to an unexpected server error: ${(error as Error).message}`);

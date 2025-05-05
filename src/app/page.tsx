@@ -37,6 +37,7 @@ export default function Home() {
         queryClient.invalidateQueries({ queryKey: ['affiliateLinks'] }); // Invalidate cache
         toast({ title: "Success!", description: "Affiliate link added successfully." });
         setEditingLink(null); // Clear editing state if any
+        document.getElementById('link-management-card')?.scrollIntoView({ behavior: 'smooth' }); // Scroll to top of form
     },
     onError: (error: Error) => {
         // Log the full error for debugging
@@ -46,12 +47,15 @@ export default function Home() {
         // Provide more specific feedback based on common errors
         if (error.message.includes("User must be logged in")) {
             description = "You must be logged in to add links.";
-        } else if (error.message.includes("PERMISSION_DENIED") || error.message.includes("permission-denied")) {
+        } else if (error.message.includes("PERMISSION_DENIED")) {
              description = "Permission denied. Please check Firestore rules or contact support.";
         } else if (error.message.includes("Database service is unavailable")) {
             description = "Cannot connect to the database. Please check configuration or try again later.";
-        } else if (error instanceof FirestoreError) {
-             description = `Failed to add link. Database error: ${error.code}`;
+        } else if (error.message.includes("Database Error:")) {
+             // Extract code if available
+             const codeMatch = error.message.match(/\(Code: (.*?)\)/);
+             const code = codeMatch ? codeMatch[1] : 'unknown';
+             description = `Failed to add link. Database error: ${code}`;
         }
 
         toast({
@@ -67,9 +71,9 @@ export default function Home() {
     mutationFn: (updatedLink: AffiliateLink) => {
        // **Crucial:** Double-check admin status *before* attempting update
        if (!isAdmin) throw new Error("PERMISSION_DENIED"); // Use a specific error type/message
-       // Ensure we have an ID and it's not a default link
-       if (!updatedLink.id || updatedLink.id.startsWith('default-link-')) {
-            throw new Error("DEFAULT_LINK_UPDATE_FORBIDDEN"); // Specific error for default links
+       // Ensure we have an ID - service function handles default link check
+       if (!updatedLink.id) {
+           throw new Error("INVALID_LINK_ID"); // Should not happen if UI is correct
        }
        const { id, userId, createdAt, ...updateData } = updatedLink; // Exclude fields that shouldn't be directly updated this way
        return updateAffiliateLink(id, updateData); // Call the service function
@@ -86,8 +90,12 @@ export default function Home() {
             description = "You do not have permission to update links.";
         } else if (error.message === "DEFAULT_LINK_UPDATE_FORBIDDEN") {
             description = "Default links cannot be modified.";
-        } else if (error instanceof FirestoreError) {
-             description = `Failed to update link. Database error: ${error.code}`;
+        } else if (error.message.includes("Database Error:")) {
+             const codeMatch = error.message.match(/\(Code: (.*?)\)/);
+             const code = codeMatch ? codeMatch[1] : 'unknown';
+             description = `Failed to update link. Database error: ${code}`;
+        } else if (error.message === "INVALID_LINK_ID") {
+             description = "Internal error: Invalid link ID provided for update.";
         }
         toast({ title: "Error Updating Link", description: description, variant: "destructive" });
     },
@@ -98,9 +106,7 @@ export default function Home() {
     mutationFn: (linkId: string) => {
         // **Crucial:** Double-check admin status *before* attempting delete
         if (!isAdmin) throw new Error("PERMISSION_DENIED");
-         if (linkId.startsWith('default-link-')) {
-            throw new Error("DEFAULT_LINK_DELETE_FORBIDDEN");
-       }
+        // Service function handles default link check
         return deleteAffiliateLink(linkId); // Call the service function
     },
     onSuccess: (data, linkId) => {
@@ -117,8 +123,10 @@ export default function Home() {
             description = "You do not have permission to delete links.";
         } else if (error.message === "DEFAULT_LINK_DELETE_FORBIDDEN") {
              description = "Default links cannot be deleted.";
-        } else if (error instanceof FirestoreError) {
-             description = `Failed to delete link. Database error: ${error.code}`;
+        } else if (error.message.includes("Database Error:")) {
+            const codeMatch = error.message.match(/\(Code: (.*?)\)/);
+            const code = codeMatch ? codeMatch[1] : 'unknown';
+            description = `Failed to delete link. Database error: ${code}`;
         }
         toast({ title: "Error Deleting Link", description: description, variant: "destructive" });
     },
@@ -175,6 +183,7 @@ export default function Home() {
 
   const handleCancelEdit = () => {
     setEditingLink(null);
+    // Optionally scroll back up or provide other UX cues
   };
 
 
@@ -206,6 +215,7 @@ export default function Home() {
                 ))}
              </div>
            ) : linksError ? (
+             // Display a user-friendly error message from the query
              <p className="text-destructive">Error loading links: {linksError.message}</p>
            ) : (
              <AffiliateLinkDisplay
