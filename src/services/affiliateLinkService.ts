@@ -2,7 +2,7 @@
 'use server'; // Mark this module for server-side execution where needed
 
 import { db } from '@/lib/firebase/config';
-import { AffiliateLink } from '@/services/affiliate-link';
+import type { AffiliateLink } from '@/services/affiliate-link';
 import {
   collection,
   addDoc,
@@ -71,7 +71,7 @@ const defaultLinks: AffiliateLink[] = [
  */
 export async function getAffiliateLinks(): Promise<AffiliateLink[]> {
   if (!db) {
-    console.error("Firestore is not initialized in getAffiliateLinks.");
+    console.error("Firestore is not initialized in getAffiliateLinks. This usually means Firebase environment variables are missing or incorrect in your deployment environment.");
     // Return default links deterministically if DB is unavailable
     return defaultLinks.map(link => ({ ...link }));
   }
@@ -125,8 +125,8 @@ export async function getAffiliateLinks(): Promise<AffiliateLink[]> {
  */
 export async function addAffiliateLink(userId: string, linkData: Omit<AffiliateLink, 'id' | 'createdAt' | 'updatedAt' | 'userId'>): Promise<{ id: string }> {
    if (!db) {
-    console.error("[Service: Add] Firestore is not initialized.");
-    throw new Error("Database service is unavailable. Cannot add link.");
+    console.error("[Service: Add] Firestore (db) is not initialized. This usually means Firebase environment variables are missing or incorrect in your deployment environment (e.g., Netlify).");
+    throw new Error("Database service is unavailable. Cannot add link. Please check server configuration.");
   }
   if (!userId) {
      console.error("[Service: Add] Attempted to add link without userId.");
@@ -169,8 +169,8 @@ export async function addAffiliateLink(userId: string, linkData: Omit<AffiliateL
  */
 export async function updateAffiliateLink(linkId: string, linkData: Partial<Omit<AffiliateLink, 'id' | 'userId' | 'createdAt'>>): Promise<void> {
    if (!db) {
-    console.error("[Service: Update] Firestore is not initialized.");
-    throw new Error("Database service is unavailable. Cannot update link.");
+    console.error("[Service: Update] Firestore is not initialized. This usually means Firebase environment variables are missing or incorrect in your deployment environment.");
+    throw new Error("Database service is unavailable. Cannot update link. Please check server configuration.");
   }
    // Prevent updating default links
    if (linkId.startsWith('default-link-')) {
@@ -215,8 +215,8 @@ export async function updateAffiliateLink(linkId: string, linkData: Partial<Omit
  */
 export async function deleteAffiliateLink(linkId: string): Promise<void> {
   if (!db) {
-    console.error("[Service: Delete] Firestore is not initialized.");
-    throw new Error("Database service is unavailable. Cannot delete link.");
+    console.error("[Service: Delete] Firestore is not initialized. This usually means Firebase environment variables are missing or incorrect in your deployment environment.");
+    throw new Error("Database service is unavailable. Cannot delete link. Please check server configuration.");
   }
    // Prevent deleting default links
    if (linkId.startsWith('default-link-')) {

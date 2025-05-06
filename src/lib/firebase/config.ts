@@ -13,7 +13,7 @@ if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
       // In a real application, you might want to handle this more gracefully,
       // perhaps showing an error message to the user or logging a more detailed error.
       // For development, throwing an error makes the missing config clear.
-      console.error("Firebase configuration environment variables are missing. Please check your .env.local file.");
+      console.error("CRITICAL ERROR: Firebase configuration environment variables are missing. Please check your .env.local file or your deployment environment variables (e.g., on Netlify). Authentication and Database features will NOT work.");
       // throw new Error("Firebase configuration environment variables are missing.");
 }
 

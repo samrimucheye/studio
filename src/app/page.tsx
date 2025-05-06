@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AffiliateLinkDisplay from '@/components/AffiliateLinkDisplay';
 import LinkManagement from '@/components/LinkManagement';
 import AiDescription from '@/components/AiDescription';
-import { AffiliateLink } from '@/services/affiliate-link';
+import type { AffiliateLink } from '@/services/affiliate-link';
 import { getAffiliateLinks, addAffiliateLink, updateAffiliateLink, deleteAffiliateLink } from '@/services/affiliateLinkService';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { toast } from "@/hooks/use-toast";
@@ -50,13 +50,16 @@ export default function Home() {
         } else if (error.message.includes("PERMISSION_DENIED")) {
              description = "Permission denied. Please check Firestore rules or contact support.";
         } else if (error.message.includes("Database service is unavailable")) {
-            description = "Cannot connect to the database. Please check configuration or try again later.";
+            description = "Cannot connect to the database. This might be due to missing environment variables in your deployment. Please check configuration or try again later.";
         } else if (error.message.includes("Database Error:")) {
              // Extract code if available
              const codeMatch = error.message.match(/\(Code: (.*?)\)/);
              const code = codeMatch ? codeMatch[1] : 'unknown';
              description = `Failed to add link. Database error: ${code}`;
+        } else if (error.message.toLowerCase().includes('unexpected server error')) {
+            description = "Failed to add link due to an unexpected server error. If deployed, please check server logs and environment variable configuration (e.g., Firebase keys on Netlify).";
         }
+
 
         toast({
           title: "Error Adding Link",
@@ -96,6 +99,8 @@ export default function Home() {
              description = `Failed to update link. Database error: ${code}`;
         } else if (error.message === "INVALID_LINK_ID") {
              description = "Internal error: Invalid link ID provided for update.";
+        } else if (error.message.toLowerCase().includes('unexpected server error')) {
+            description = "Failed to update link due to an unexpected server error. If deployed, please check server logs and environment variable configuration.";
         }
         toast({ title: "Error Updating Link", description: description, variant: "destructive" });
     },
@@ -127,6 +132,8 @@ export default function Home() {
             const codeMatch = error.message.match(/\(Code: (.*?)\)/);
             const code = codeMatch ? codeMatch[1] : 'unknown';
             description = `Failed to delete link. Database error: ${code}`;
+        } else if (error.message.toLowerCase().includes('unexpected server error')) {
+             description = "Failed to delete link due to an unexpected server error. If deployed, please check server logs and environment variable configuration.";
         }
         toast({ title: "Error Deleting Link", description: description, variant: "destructive" });
     },

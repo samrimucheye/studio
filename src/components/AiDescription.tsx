@@ -63,11 +63,14 @@ const AiDescription: React.FC = () => {
       // Check if the error message indicates a service unavailable issue
       if (error.message && error.message.includes('503 Service Unavailable')) {
         errorMessage = "The AI service is currently overloaded. Please try again later.";
-      } else if (error.message) {
+      } else if (error.message && (error.message.toLowerCase().includes('api key not valid') || error.message.toLowerCase().includes('api_key_not_valid'))) {
+        errorMessage = "Failed to generate description: Invalid or missing AI API Key. Please check server configuration (e.g., GOOGLE_GENAI_API_KEY environment variable).";
+      }
+      else if (error.message) {
          errorMessage = `Failed to generate description: ${error.message}`;
       }
        toast({
-        title: "Error",
+        title: "Error Generating Description",
         description: errorMessage,
         variant: "destructive",
        });
@@ -99,7 +102,7 @@ const AiDescription: React.FC = () => {
                 <FormItem>
                   <FormLabel>Product Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter product name" {...field} />
+                    <Input placeholder="Enter product name" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormDescription>
                     Enter the name of the product for description generation.
@@ -115,7 +118,7 @@ const AiDescription: React.FC = () => {
                 <FormItem>
                   <FormLabel>Keywords</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter keywords related to the product" {...field} />
+                    <Input placeholder="Enter keywords related to the product" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormDescription>
                     Enter a few keywords that describe the product.
