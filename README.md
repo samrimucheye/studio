@@ -30,7 +30,44 @@ To get started, take a look at src/app/page.tsx.
     ```
     Replace `your_...` with your actual credentials.
 
-3.  **Run the development server for Next.js:**
+3.  **Configure Firestore Security Rules:**
+    In your Firebase project, go to Firestore Database &gt; Rules.
+    Replace the default rules with the following to allow authenticated users to add links and admins to manage them:
+    ```
+    rules_version = '2';
+
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        // Affiliate Links Collection
+        match /affiliateLinks/{linkId} {
+          // Allow anyone to read affiliate links
+          allow read: if true;
+
+          // Allow any authenticated user to create new affiliate links.
+          // The 'userId' field in the document must match the UID of the authenticated user.
+          allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+          // Allow updates and deletes ONLY if the link is NOT a default link
+          // AND the requesting user is authenticated AND their email matches the admin email.
+          // Replace 'samrimucheye@gmail.com' with your actual admin email.
+          allow update, delete: if resource.id.startsWith('default-link-') == false &&
+                                request.auth != null && request.auth.token.email == 'samrimucheye@gmail.com';
+
+          // If you prefer to use custom claims for admin status (e.g., an 'admin' boolean claim):
+          // allow update, delete: if resource.id.startsWith('default-link-') == false &&
+          //                         request.auth != null && request.auth.token.admin == true;
+        }
+
+        // Default rules for other collections (if any)
+        // match /{document=**} {
+        //   allow read, write: if false; // Or your specific rules
+        // }
+      }
+    }
+    ```
+    **Important:** Ensure the admin email in the rules (`'samrimucheye@gmail.com'`) matches the one defined in `src/context/AuthContext.tsx`.
+
+4.  **Run the development server for Next.js:**
     ```bash
     npm run dev
     # or
@@ -40,7 +77,7 @@ To get started, take a look at src/app/page.tsx.
     ```
     The application will be available at `http://localhost:9002`.
 
-4.  **(Optional) Run Genkit development server (for testing flows directly):**
+5.  **(Optional) Run Genkit development server (for testing flows directly):**
     In a separate terminal:
     ```bash
     npm run genkit:dev
@@ -63,6 +100,7 @@ When deploying this application to Netlify, you **must** configure the following
 *   `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (if you use it)
 *   `GOOGLE_GENAI_API_KEY`
 
-**Failure to set these environment variables on Netlify will result in errors when trying to interact with Firebase (e.g., adding links) or Genkit (e.g., generating descriptions).**
+**Failure to set these environment variables on Netlify will result in errors when trying to interact with Firebase (e.g., adding links, authentication) or Genkit (e.g., generating descriptions).**
 
 You can set these variables in your Netlify site dashboard under "Site settings" > "Build & deploy" > "Environment".
+Ensure your Firestore security rules (see step 3 of "Running Locally") are also correctly set in your Firebase project for the deployed application to function as expected.
