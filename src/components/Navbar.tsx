@@ -2,18 +2,18 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, LogIn, UserPlus, LogOut, Accessibility } from 'lucide-react'; // Added Accessibility
+import { useState, useEffect } from 'react';
+import { Menu, LogIn, UserPlus, LogOut, Accessibility } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/ModeToggle";
-import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
-import { Button } from "@/components/ui/button"; // Import Button
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar" // Import Avatar
-
+import { useAuth } from '@/context/AuthContext';
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AccessibilityOptionsDialog from '@/components/AccessibilityOptionsDialog'; // Import the dialog
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, loading, signOut } = useAuth(); // Get auth state and signout function
+  const { user, loading, signOut } = useAuth();
 
   const handleMenuClose = () => {
     setIsMenuOpen(false);
@@ -22,12 +22,6 @@ const Navbar = () => {
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "?";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const handleAccessibilityClick = () => {
-    console.log("Accessibility options clicked");
-    // Placeholder for future accessibility features/modal
-    alert("Accessibility options coming soon!");
   };
 
   return (
@@ -66,13 +60,13 @@ const Navbar = () => {
                 </Link>
                 <div className="border-t my-2"></div>
                 {loading ? (
-                   <p>Loading...</p> // Show loading state
+                   <p>Loading...</p>
                 ) : user ? (
                   <>
                     <div className="flex items-center space-x-2 mb-2">
                        <Avatar className="h-8 w-8">
                          <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
-                         <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback> {/* Use email if no display name */}
+                         <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
                        </Avatar>
                        <span>{user.displayName || user.email}</span>
                     </div>
@@ -96,9 +90,11 @@ const Navbar = () => {
                 )}
                 <div className="flex items-center space-x-2 mt-auto pt-4 border-t">
                   <ModeToggle />
-                  <Button variant="ghost" size="icon" onClick={() => { handleAccessibilityClick(); handleMenuClose(); }} aria-label="Accessibility Options">
-                    <Accessibility className="h-[1.2rem] w-[1.2rem]" />
-                  </Button>
+                  <AccessibilityOptionsDialog onDialogClose={handleMenuClose}>
+                    <Button variant="ghost" size="icon" aria-label="Accessibility Options">
+                      <Accessibility className="h-[1.2rem] w-[1.2rem]" />
+                    </Button>
+                  </AccessibilityOptionsDialog>
                 </div>
               </div>
             </SheetContent>
@@ -123,12 +119,12 @@ const Navbar = () => {
             Blog
           </Link>
            {loading ? (
-             <div className="h-8 w-20 bg-muted rounded animate-pulse"></div> // Skeleton loader
+             <div className="h-8 w-20 bg-muted rounded animate-pulse"></div>
            ) : user ? (
               <div className="flex items-center space-x-2">
                  <Avatar className="h-8 w-8">
                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
-                    <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback> {/* Use email if no display name */}
+                    <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
                  </Avatar>
                  <Button variant="outline" size="sm" onClick={signOut}>
                     <LogOut className="mr-1 h-4 w-4" /> Logout
@@ -149,9 +145,11 @@ const Navbar = () => {
              </div>
            )}
           <ModeToggle />
-          <Button variant="ghost" size="icon" onClick={handleAccessibilityClick} aria-label="Accessibility Options">
-            <Accessibility className="h-[1.2rem] w-[1.2rem]" />
-          </Button>
+          <AccessibilityOptionsDialog>
+             <Button variant="ghost" size="icon" aria-label="Accessibility Options">
+               <Accessibility className="h-[1.2rem] w-[1.2rem]" />
+             </Button>
+          </AccessibilityOptionsDialog>
         </div>
       </div>
     </nav>

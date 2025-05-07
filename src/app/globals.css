@@ -42,6 +42,15 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Default font size variables */
+    --font-size-base: 1rem; /* Corresponds to text-base */
+    --font-size-sm: 0.875rem; /* Corresponds to text-sm */
+    --font-size-lg: 1.125rem; /* Corresponds to text-lg */
+    --font-size-xl: 1.25rem; /* Corresponds to text-xl */
+    --font-size-2xl: 1.5rem; /* Corresponds to text-2xl */
+    --font-size-3xl: 1.875rem; /* Corresponds to text-3xl */
+
   }
   .dark {
     --background: 240 10% 3.9%; /* Dark gray background */
@@ -77,6 +86,101 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* High Contrast Light Theme */
+  .high-contrast-light {
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 0%;   /* Black */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 260 100% 50%; /* Stronger Blue/Purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 90%; /* Light Gray */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 20%; /* Darker Gray */
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%; /* Bright Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 50%; /* Medium Gray Border */
+    --input: 0 0% 50%;
+    --ring: 260 100% 50%;
+  }
+  .dark .high-contrast-light { /* Override if dark mode is also active */
+     --background: 0 0% 100%;
+     --foreground: 0 0% 0%;
+  }
+
+
+  /* High Contrast Dark Theme */
+  .high-contrast-dark {
+    --background: 0 0% 0%;   /* Black */
+    --foreground: 0 0% 100%; /* White */
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 60 100% 50%; /* Bright Yellow */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%; /* Dark Gray */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 80%; /* Lighter Gray */
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 60%; /* Bright Red */
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 50%; /* Medium Gray Border */
+    --input: 0 0% 50%;
+    --ring: 60 100% 50%;
+  }
+
+  /* Font size adjustments */
+  html[data-font-size="small"] {
+    font-size: 0.875em; /* Roughly 14px if base is 16px */
+  }
+  html[data-font-size="medium"] {
+    font-size: 1em; /* Default */
+  }
+  html[data-font-size="large"] {
+    font-size: 1.125em; /* Roughly 18px if base is 16px */
+  }
+
+ /* Apply font sizes to common text elements, scaling them based on the root font-size */
+  html[data-font-size="small"] body {
+    font-size: var(--font-size-sm);
+  }
+  html[data-font-size="small"] h1, html[data-font-size="small"] .text-3xl { font-size: calc(var(--font-size-3xl) * 0.9); }
+  html[data-font-size="small"] h2, html[data-font-size="small"] .text-2xl { font-size: calc(var(--font-size-2xl) * 0.9); }
+  html[data-font-size="small"] h3, html[data-font-size="small"] .text-xl { font-size: calc(var(--font-size-xl) * 0.9); }
+  html[data-font-size="small"] h4, html[data-font-size="small"] .text-lg { font-size: calc(var(--font-size-lg) * 0.9); }
+  html[data-font-size="small"] p, html[data-font-size="small"] span, html[data-font-size="small"] div, html[data-font-size="small"] .text-base { font-size: var(--font-size-base) * 0.9; }
+  html[data-font-size="small"] .text-sm { font-size: calc(var(--font-size-sm) * 0.9); }
+
+
+  html[data-font-size="large"] body {
+    font-size: var(--font-size-lg);
+  }
+  html[data-font-size="large"] h1, html[data-font-size="large"] .text-3xl { font-size: calc(var(--font-size-3xl) * 1.1); }
+  html[data-font-size="large"] h2, html[data-font-size="large"] .text-2xl { font-size: calc(var(--font-size-2xl) * 1.1); }
+  html[data-font-size="large"] h3, html[data-font-size="large"] .text-xl { font-size: calc(var(--font-size-xl) * 1.1); }
+  html[data-font-size="large"] h4, html[data-font-size="large"] .text-lg { font-size: calc(var(--font-size-lg) * 1.1); }
+  html[data-font-size="large"] p, html[data-font-size="large"] span, html[data-font-size="large"] div, html[data-font-size="large"] .text-base { font-size: calc(var(--font-size-base) * 1.1); }
+  html[data-font-size="large"] .text-sm { font-size: calc(var(--font-size-sm) * 1.1); }
+
+
+  /* Link highlighting */
+  html[data-highlight-links="true"] a {
+    @apply underline decoration-primary decoration-2 underline-offset-2;
+  }
+  html[data-highlight-links="true"] a:hover {
+    @apply text-primary brightness-110;
+  }
+
+
 }
 
 @layer base {
