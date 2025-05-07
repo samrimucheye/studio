@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, LogIn, UserPlus, LogOut } from 'lucide-react'; // Added UserPlus for Sign Up
+import { Menu, LogIn, UserPlus, LogOut, Accessibility } from 'lucide-react'; // Added Accessibility
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/ModeToggle";
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
@@ -24,6 +24,12 @@ const Navbar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const handleAccessibilityClick = () => {
+    console.log("Accessibility options clicked");
+    // Placeholder for future accessibility features/modal
+    alert("Accessibility options coming soon!");
+  };
+
   return (
     <nav className="bg-background border-b shadow-sm fixed top-0 left-0 w-full z-10">
       <div className="container mx-auto p-4 flex items-center justify-between">
@@ -34,8 +40,11 @@ const Navbar = () => {
         {/* Hamburger menu for small devices */}
         <div className="md:hidden">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <SheetTrigger>
-              <Menu className="h-6 w-6 cursor-pointer" />
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6 cursor-pointer" />
+                <span className="sr-only">Open menu</span>
+              </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64">
               <SheetTitle>Navigation</SheetTitle>
@@ -85,7 +94,12 @@ const Navbar = () => {
                      </Link>
                    </>
                 )}
-                 <ModeToggle />
+                <div className="flex items-center space-x-2 mt-auto pt-4 border-t">
+                  <ModeToggle />
+                  <Button variant="ghost" size="icon" onClick={() => { handleAccessibilityClick(); handleMenuClose(); }} aria-label="Accessibility Options">
+                    <Accessibility className="h-[1.2rem] w-[1.2rem]" />
+                  </Button>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -135,6 +149,9 @@ const Navbar = () => {
              </div>
            )}
           <ModeToggle />
+          <Button variant="ghost" size="icon" onClick={handleAccessibilityClick} aria-label="Accessibility Options">
+            <Accessibility className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
         </div>
       </div>
     </nav>
